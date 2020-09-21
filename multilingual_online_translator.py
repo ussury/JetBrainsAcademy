@@ -1,10 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
 
-lang = input('''Type "en" if you want to translate from French into English, 
-or "fr" if you want to translate from English into French: \n''')
+lang = input('''Type "en" if you want to translate from French into English,
+ or "fr" if you want to translate from English into French: \n''')
 word = input('Type the word you want to translate: \n')
-print(f'You chose "{lang}" as the language to translate "{word}".')
+print(f'You chose "{lang}" as the language to translate "{word}" to.')
 
 
 def get_url(_lang):
@@ -32,17 +32,27 @@ def words_translation(_soup):
     for item in words_trans:
         words_trans_list.append(item.text.strip())
 
-    print('Translation ' + ', '.join(words_trans_list))
+    for i in words_trans_list[:5]:
+        print(i)
 
 
 def examples_content(_soup):
-    examp_content = soup.select('#examples-content .example .text')
-    examp_content_list = []
-    for item in examp_content:
-        examp_content_list.append(item.text.strip('\n " "'))
+    _examples_content = _soup.select('#examples-content .example')
+    _examples_content_list = []
+    for item in _examples_content:
+        _examples_content_list.append(item.get_text(strip=True))
 
-    print('Translation ' + ', '.join(examp_content_list))
+    for i in _examples_content_list[:5]:
+        print(i + '\n')
 
 
-words_translation(soup)
-examples_content(soup)
+def translation(_soup):
+    print('Context examples: \n')
+    print('French Translations:')
+    words_translation(_soup)
+    print('\nFrench Examples:')
+    examples_content(_soup)
+
+
+translation(soup)
+
