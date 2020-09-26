@@ -1,28 +1,49 @@
 import requests
 from bs4 import BeautifulSoup
 
-lang = input('''Type "en" if you want to translate from French into English,
- or "fr" if you want to translate from English into French: \n''')
+
+print("""Hello, you're welcome to the translator.
+Translator supports: 
+1. Arabic
+2. German
+3. English
+4. Spanish
+5. French
+6. Hebrew
+7. Japanese
+8. Dutch
+9. Polish
+10. Portuguese
+11. Romanian
+12. Russian
+13. Turkish
+""")
+
+lang_dict = {
+    '1': 'arabic',
+    '2': 'german',
+    '3': 'english',
+    '4': 'spanish',
+    '5': 'french',
+    '6': 'hebrew',
+    '7': 'japanese',
+    '8': 'dutch',
+    '9': 'polish',
+    '10': 'portuguese',
+    '11': 'romanian',
+    '12': 'russian',
+    '13': 'turkish'
+}
+
+your_lang = input('Type the number of your language: \n')
+translate_lang = input('Type the number of language you want to translate to: \n')
 word = input('Type the word you want to translate: \n')
-print(f'You chose "{lang}" as the language to translate "{word}" to.')
-
-
-def get_url(_lang):
-    _url = ''
-    if lang == 'en':
-        _url = 'https://context.reverso.net/translation/french-english/'
-    if lang == 'fr':
-        _url = 'https://context.reverso.net/translation/english-french/'
-
-    return _url
+_url = f'https://context.reverso.net/translation/{lang_dict[your_lang]}-{lang_dict[translate_lang]}/{word}'
 
 
 headers = {'user-agent': 'Mozilla/5.0'}
-
-r = requests.get(get_url(lang) + word, headers=headers)
-
-print('200 OK') if r.status_code == 200 else print(f'status of the response: {r.status_code}')
-
+r = requests.get(_url, headers=headers)
+#print('200 OK') if r.status_code == 200 else print(f'status of the response: {r.status_code}')
 soup = BeautifulSoup(r.content, 'html.parser')
 
 
@@ -47,12 +68,12 @@ def examples_content(_soup):
 
 
 def translation(_soup):
-    print('Context examples: \n')
-    print('French Translations:')
+    print(f'\n{lang_dict[translate_lang]} Translations:')
     words_translation(_soup)
-    print('\nFrench Examples:')
+    print(f'\n{lang_dict[translate_lang]} Examples:')
     examples_content(_soup)
 
 
 translation(soup)
+
 
