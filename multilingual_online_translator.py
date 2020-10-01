@@ -1,16 +1,16 @@
+import sys
 import requests
 from bs4 import BeautifulSoup
 
-all_languages = ['arabic', 'german', 'english', 'spanish', 'french', 'hebrew', 'japanese',
-                 'dutch', 'polish', 'portuguese', 'romanian', 'russian', 'turkish']
+args = sys.argv
 
-print('Hello, you\'re welcome to the translator. Translator supports:')
-for position, val in enumerate(all_languages, 1):
-    print(str(position) + '.', val.capitalize())
+all_languages = {'arabic': 'arabic', 'german': 'german', 'english': 'english', 'spanish': 'spanish', 'french': 'french',
+                 'hebrew': 'hebrew', 'japanese': 'japanese', 'dutch': 'dutch', 'polish': 'polish',
+                 'portuguese': 'portuguese', 'romanian': 'romanian', 'russian': 'russian', 'turkish': 'turkish'}
 
-your_lang = int(input('Type the number of your language: \n'))
-to_lang = int(input('Type the number of a language you want to translate to or "0" to translate to all languages: \n'))
-word = input('Type the word you want to translate: \n')
+your_lang = all_languages[args[1]]
+to_lang = all_languages[args[2]] if args[2] != 'all' else 'all'
+word = args[3]
 translation_file = f'{word}.txt'
 url = 'https://context.reverso.net/translation/'
 
@@ -20,45 +20,44 @@ def get_soup(_url):
     return BeautifulSoup(r.content, 'html.parser')
 
 
-def one_translate():
-    _url = f'{url}{all_languages[your_lang - 1]}-{all_languages[to_lang - 1]}/{word}'
+def translate():
+    _url = f'{url}{your_lang}-{to_lang}/{word}'
     soup = get_soup(_url)
-
-    text_words_translation = f'\n{all_languages[to_lang - 1].capitalize()} Translations: \n'
     words_translation = [i.text.strip() for i in soup.select('#translations-content .translation')]
-    for i in words_translation[:1]:
-        text_words_translation += i + '\n'
-    print(text_words_translation)
-
-    text_examples_content = f'{all_languages[to_lang - 1].capitalize()} Examples: \n'
     examples_content = [i.text.strip('\n " " []') for i in soup.select('#examples-content .text')]
-    text_examples_content += '\n'.join(examples_content[:2])
-    print(text_examples_content)
+
+    print(f'\n{to_lang.capitalize()} Translations:')
+    for i in words_translation[:5]:
+        print(i)
+
+    print(f'\n{to_lang.capitalize()} Examples:')
+    print("\n\n".join(("\n".join(j for j in examples_content[i:i + 2]) for i in range(0, 10, 2))))
 
 
 def translate_all():
     with open(translation_file, 'w') as f:
         for i in all_languages:
-            if i != all_languages[your_lang - 1]:
-                _url = f'{url}{all_languages[your_lang - 1]}-{i}/{word}'
+            if i != your_lang:
+                _url = f'{url}{your_lang}-{i}/{word}'
                 soup = get_soup(_url)
 
-                words_translation = [i.text.strip() for i in soup.select('#translations-content .translation')]
-                examples_content = [i.text.strip('\n " " []') for i in soup.select('#examples-content .text')]
+                _words_translation = [i.text.strip() for i in soup.select('#translations-content .translation')]
+                _examples_content = [i.text.strip('\n " " []') for i in soup.select('#examples-content .text')]
 
                 print(f'\n{i.capitalize()} Translations:')
-                print(words_translation[1])
-                f.write(f'{i.capitalize()} Translations:' + '\n' + words_translation[1] + '\n')
+                print(_words_translation[1])
+                f.write(f'{i.capitalize()} Translations:' + '\n' + _words_translation[1] + '\n')
 
                 print(f'\n{i.capitalize()} Examples:')
-                print('\n'.join(examples_content[:2]))
+                print('\n'.join(_examples_content[:2]))
                 print()
-                f.write(f'\n{i.capitalize()} Examples:' + '\n' + examples_content[0] + '\n\n')
+                f.write(f'\n{i.capitalize()} Examples:' + '\n' + _examples_content[0] + '\n\n')
             else:
                 continue
 
 
-if to_lang > 0:
-    one_translate()
-else:
+if to_lang == 'all':
     translate_all()
+else:
+    translate()
+
