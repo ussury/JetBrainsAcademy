@@ -8,15 +8,37 @@ all_languages = {'arabic': 'arabic', 'german': 'german', 'english': 'english', '
                  'hebrew': 'hebrew', 'japanese': 'japanese', 'dutch': 'dutch', 'polish': 'polish',
                  'portuguese': 'portuguese', 'romanian': 'romanian', 'russian': 'russian', 'turkish': 'turkish'}
 
-your_lang = all_languages[args[1]]
-to_lang = all_languages[args[2]] if args[2] != 'all' else 'all'
 word = args[3]
+to_lang = ''
+
+try:
+    your_lang = all_languages[args[1]]
+except KeyError:
+    print(f"Sorry, the program doesn't support {args[1]}")
+    exit()
+
+try:
+    to_lang = all_languages[args[2]] if args[2] != 'all' else 'all'
+except KeyError:
+    print(f'Sorry, the program doesn\'t support {args[2]}')
+    exit()
+
+
 translation_file = f'{word}.txt'
 url = 'https://context.reverso.net/translation/'
 
 
 def get_soup(_url):
-    r = requests.get(_url, headers={'user-agent': 'Mozilla/5.0'})
+    try:
+        r = requests.get(_url, headers={'user-agent': 'Mozilla/5.0'})
+    except requests.exceptions.ConnectionError:
+        print("Something wrong with your internet connection")
+        exit()
+    else:
+        if r.status_code == 404:
+            print(f"Sorry, unable to find {word}")
+            exit()
+
     return BeautifulSoup(r.content, 'html.parser')
 
 
@@ -41,17 +63,17 @@ def translate_all():
                 _url = f'{url}{your_lang}-{i}/{word}'
                 soup = get_soup(_url)
 
-                _words_translation = [i.text.strip() for i in soup.select('#translations-content .translation')]
-                _examples_content = [i.text.strip('\n " " []') for i in soup.select('#examples-content .text')]
+                words_translation = [i.text.strip() for i in soup.select('#translations-content .translation')]
+                examples_content = [i.text.strip('\n " " []') for i in soup.select('#examples-content .text')]
 
                 print(f'\n{i.capitalize()} Translations:')
-                print(_words_translation[1])
-                f.write(f'{i.capitalize()} Translations:' + '\n' + _words_translation[1] + '\n')
+                print(words_translation[1])
+                f.write(f'{i.capitalize()} Translations:' + '\n' + words_translation[1] + '\n')
 
                 print(f'\n{i.capitalize()} Examples:')
-                print('\n'.join(_examples_content[:2]))
+                print('\n'.join(examples_content[:2]))
                 print()
-                f.write(f'\n{i.capitalize()} Examples:' + '\n' + _examples_content[0] + '\n\n')
+                f.write(f'\n{i.capitalize()} Examples:' + '\n' + examples_content[0] + '\n\n')
             else:
                 continue
 
