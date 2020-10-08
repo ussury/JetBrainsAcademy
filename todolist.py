@@ -1,60 +1,56 @@
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 
-# создание файла базы данных
-engine = create_engine('sqlite:///todo.db?check_same_thread=False')
 
-# создаем класс модели, описывающ. таблицу в БД
-# Все классы модели наследуют от Declararive класса
+engine = create_engine('sqlite:///todo.db?check_same_thread=False')
 Base = declarative_base()
 
 
 class Table(Base):
     __tablename__ = 'task'
     id = Column(Integer, primary_key=True)
-    task = Column(String, default='default_value')
+    task = Column(String)
     deadline = Column(Date, default=datetime.today())
 
     def __repr__(self):
         return self.task
 
 
-# создаем таблицу в БД
 Base.metadata.create_all(engine)
-
-# создаем сеанс для получения доступа к БД
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# создаем строку в таблице
-# создаем обьект класса model и передаем его add() методу
-new_row = Table(task='Nothing to do!',
-                deadline=datetime.strptime('10-03-2020', '%m-%d-%Y').date())
-session.add(new_row)
-session.commit()
 
-# получаем все строки из таблицы с помощью query() метода
-rows = session.query(Table).all()  # all() Метод возвращает все строки из таблицы в виде списка Python.
+def add_task():
+    """ adds the input to the task database """
 
-# получаем доступ к полям строк по их именам
-first_row = rows[0]  # Если список строк не пустой
+    new_row = Table(task=input('Enter task\n'))
+    session.add(new_row)
+    session.commit()
+    print("The task has been added!\n")
 
-# print(first_row.string_field)  # Напечатает значение string_field
-# print(first_row.id)  # Напечатает идентификатор строки
-# print(first_row)  # Напечатает строку, возвращенную методом __repr__
 
-# menu
-menu = input("""1) Today's tasks
-2) Add task
-3) Exit \n""")
+def printing_tasks():
+    """ Prints out all tasks from the task database """
+
+    rows = session.query(Table).all()
+
+    print('Today:')
+    if rows:
+        print('\n'.join([str(row.id) + '. ' + row.task for row in rows]))
+    else:
+        print('Nothing to do!')
+    print()
+
 
 while True:
-    if menu == '0':
-        exit()
+    menu = input("1) Today's tasks\n2) Add task\n0) Exit\n")
     if menu == '1':
-        print(first_row)
+        printing_tasks()
     if menu == '2':
-        pass
+        add_task()
+    if menu == '0':
+        print('\nBye!')
+        exit()
