@@ -76,8 +76,47 @@ def printing_week_tasks():
     print()
 
 
+def printing_missed_tasks():
+    """ prints all tasks whose deadline was missed """
+
+    print('\nMissed tasks:')
+
+    rows = session.query(Table).filter(Table.dates < datetime.today().date()).all()
+    if rows:
+        print('\n'.join([f'{str(num + 1)}. {row.task}. {row.dates.day} {row.dates.strftime("%b")}'
+                        for num, row in enumerate(rows)]))
+    else:
+        print('Nothing to do!')
+    print()
+
+
+def delete_task():
+    """ deletes the chosen task """
+
+    print('\nChoose the number of the task you want to delete:')
+
+    rows = session.query(Table).order_by(Table.dates).all()
+    if rows:
+        print('\n'.join([f'{str(num + 1)}. {row.task}. {row.dates.day} {row.dates.strftime("%b")}'
+                         for num, row in enumerate(rows)]))
+        num_delete_task = int(input())
+        delete_row = rows[num_delete_task - 1]
+        session.delete(delete_row)
+        session.commit()
+        print('The task has been deleted!\n')
+    else:
+        print('Nothing to delete\n')
+
+
 while True:
-    menu = input("1) Today's tasks\n2) Week's tasks\n3) All tasks\n4) Add task\n0) Exit\n")
+    menu = input("""1) Today's tasks
+2) Week's tasks
+3) All tasks
+4) Missed tasks
+5) Add task
+6) Delete task
+0) Exit\n""")
+
     if menu == '1':
         printing_today_tasks()
     if menu == '2':
@@ -85,7 +124,11 @@ while True:
     if menu == '3':
         printing_all_tasks()
     if menu == '4':
+        printing_missed_tasks()
+    if menu == '5':
         add_task()
+    if menu == '6':
+        delete_task()
     if menu == '0':
         print('\nBye!')
         exit()
